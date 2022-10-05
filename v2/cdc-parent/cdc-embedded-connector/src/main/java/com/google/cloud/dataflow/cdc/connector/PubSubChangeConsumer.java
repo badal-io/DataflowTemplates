@@ -23,8 +23,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.ProjectTopicName;
 import com.google.pubsub.v1.PubsubMessage;
-import io.debezium.embedded.EmbeddedEngine;
-import io.debezium.embedded.EmbeddedEngine.RecordCommitter;
+import io.debezium.engine.DebeziumEngine;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -40,7 +39,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.slf4j.LoggerFactory;
 
 /** Implements Debezium's Embedded Engine change consumer to push data to PubSub. */
-public class PubSubChangeConsumer implements EmbeddedEngine.ChangeConsumer {
+public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<SourceRecord> {
 
   private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(PubSubChangeConsumer.class);
 
@@ -100,7 +99,7 @@ public class PubSubChangeConsumer implements EmbeddedEngine.ChangeConsumer {
   }
 
   @Override
-  public void handleBatch(List<SourceRecord> records, RecordCommitter committer)
+  public void handleBatch(List<SourceRecord> list, DebeziumEngine.RecordCommitter<SourceRecord> recordCommitter)
       throws InterruptedException {
 
     ImmutableList.Builder<ApiFuture<String>> futureListBuilder = ImmutableList.builder();
@@ -108,7 +107,7 @@ public class PubSubChangeConsumer implements EmbeddedEngine.ChangeConsumer {
     Set<Publisher> usedPublishers = new HashSet<>();
 
     // TODO(pabloem): Improve the commit logic.
-    for (SourceRecord r : records) {
+    for (SourceRecord r : list) {
 
       // Debezium publishes updates for each table in a separate Kafka topic, which is the fully
       // qualified name of the MySQL table (e.g. dbInstanceName.databaseName.table_name).
@@ -159,7 +158,7 @@ public class PubSubChangeConsumer implements EmbeddedEngine.ChangeConsumer {
       } else {
         LOG.debug("Discarding record: {}", r);
       }
-      committer.markProcessed(r);
+      recordCommitter.markProcessed(r);
     }
 
     usedPublishers.forEach(p -> p.publishAllOutstanding());
@@ -174,6 +173,7 @@ public class PubSubChangeConsumer implements EmbeddedEngine.ChangeConsumer {
       }
     }
 
-    committer.markBatchFinished();
+    recordCommitter.markBatchFinished();
   }
+
 }

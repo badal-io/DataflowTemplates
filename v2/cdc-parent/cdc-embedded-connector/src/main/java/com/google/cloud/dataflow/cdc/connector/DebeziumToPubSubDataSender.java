@@ -179,7 +179,7 @@ public class DebeziumToPubSubDataSender implements Runnable {
             PubSubChangeConsumer.DEFAULT_PUBLISHER_FACTORY);
 
     final EmbeddedEngine engine =
-        EmbeddedEngine.create()
+        new EmbeddedEngine.BuilderImpl()
             .using(config)
             .using(this.getClass().getClassLoader())
             .using(Clock.SYSTEM)
