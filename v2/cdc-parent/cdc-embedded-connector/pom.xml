@@ -106,6 +106,23 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>db2</id>
+      <dependencies>
+        <dependency>
+          <groupId>io.debezium</groupId>
+          <artifactId>debezium-connector-db2</artifactId>
+          <version>${debezium.version}</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.ibm.db2</groupId>
+          <artifactId>jcc</artifactId>
+          <version>11.5.0.0</version>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
   <dependencies>
     <dependency>
@@ -130,6 +147,18 @@
       <groupId>io.debezium</groupId>
       <artifactId>debezium-connector-mysql</artifactId>
       <version>${debezium.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-connector-db2</artifactId>
+      <version>${debezium.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.db2</groupId>
+      <artifactId>jcc</artifactId>
+      <version>11.5.0.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

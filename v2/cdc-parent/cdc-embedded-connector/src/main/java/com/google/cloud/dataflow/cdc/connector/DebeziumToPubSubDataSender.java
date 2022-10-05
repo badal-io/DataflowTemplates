@@ -55,6 +55,7 @@ public class DebeziumToPubSubDataSender implements Runnable {
           .put("mysql", "io.debezium.connector.mysql.MySqlConnector")
           .put("postgres", "io.debezium.connector.postgresql.PostgresConnector")
           .put("sqlserver", "io.debezium.connector.sqlserver.SqlServerConnector")
+          .put("db2", "io.debezium.connector.db2.Db2Connector")
           .build();
 
   private static final Logger LOG = LoggerFactory.getLogger(DebeziumToPubSubDataSender.class);
