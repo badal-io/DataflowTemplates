@@ -57,7 +57,7 @@ public class DataCatalogSchemaUtils {
    * multiple {@link Entry}s is created for a single Pub/Sub topic.
    */
   public static String entryGroupNameForTopic(String pubsubTopic) {
-    return String.format("cdc_%s", pubsubTopic);
+    return String.format("cdc_%s", pubsubTopic); //TODO this is prefixing the pubsub topic prefix as configured in properties file
   }
 
   /** Build a {@link DataCatalogSchemaManager} given certain parameters. */

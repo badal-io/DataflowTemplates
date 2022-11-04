@@ -50,7 +50,7 @@ public class DebeziumSourceRecordToDataflowCdcFormatTranslator {
   private final Map<String, org.apache.beam.sdk.schemas.Schema> knownSchemas = new HashMap<>();
 
   public Row translate(SourceRecord record) {
-    LOG.debug("Source Record from Debezium: {}", record);
+    LOG.info("Source Record from Debezium: {}", record);
 
     String qualifiedTableName = record.topic();
 
@@ -62,7 +62,7 @@ public class DebeziumSourceRecordToDataflowCdcFormatTranslator {
     // TODO: Consider including before value in the Row.
     Struct afterValue = recordValue.getStruct("after");
     Row afterValueRow = afterValue == null ? null : handleValue(afterValue.schema(), afterValue);
-    LOG.debug("Beam Row is {}", afterValueRow);
+    LOG.info("Beam Row is {}", afterValueRow);
 
     Row primaryKey = null;
     boolean hasPK = true;

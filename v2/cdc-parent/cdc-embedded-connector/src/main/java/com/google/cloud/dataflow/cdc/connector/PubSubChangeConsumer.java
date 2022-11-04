@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
 import org.apache.beam.sdk.coders.RowCoder;
 import org.apache.beam.sdk.values.Row;
 import org.apache.kafka.connect.source.SourceRecord;
@@ -71,7 +73,7 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
       Set<String> whitelistedTables,
       DataCatalogSchemaManager schemaUpdater,
       BiFunction<String, DataCatalogSchemaManager, Publisher> pubSubPublisherFactory) {
-    this.whitelistedTables = whitelistedTables;
+    this.whitelistedTables = convertUpperCase(whitelistedTables);
     this.observedTables = new HashSet<>();
     this.pubsubPublisherMap = new HashMap<>();
     this.rowCoderMap = new HashMap<>();
@@ -98,10 +100,14 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
     return rowCoderMap.get(tableName);
   }
 
+  private Set<String> convertUpperCase(Set<String> inputSet) {
+    return inputSet.stream().map(String::toUpperCase).collect(Collectors.toSet());
+  }
+
   @Override
   public void handleBatch(List<SourceRecord> list, DebeziumEngine.RecordCommitter<SourceRecord> recordCommitter)
       throws InterruptedException {
-
+    LOG.info("entered handleBatch method for listsize: " + list.size());
     ImmutableList.Builder<ApiFuture<String>> futureListBuilder = ImmutableList.builder();
 
     Set<Publisher> usedPublishers = new HashSet<>();
@@ -111,7 +117,7 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
 
       // Debezium publishes updates for each table in a separate Kafka topic, which is the fully
       // qualified name of the MySQL table (e.g. dbInstanceName.databaseName.table_name).
-      String tableName = r.topic();
+      String tableName = r.topic().toUpperCase();
 
       if (whitelistedTables.contains(tableName)) {
         Row updateRecord = translator.translate(r);
@@ -137,7 +143,7 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
         usedPublishers.add(pubSubPublisher);
 
         PubsubMessage.Builder messageBuilder = PubsubMessage.newBuilder();
-        LOG.debug("Update Record is: {}", updateRecord);
+        LOG.info("Update Record is: {}", updateRecord);
 
         try {
           RowCoder recordCoder = getCoderForRow(tableName, updateRecord);
@@ -156,7 +162,7 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
           return;
         }
       } else {
-        LOG.debug("Discarding record: {}", r);
+        LOG.info("Discarding record: {}", r);
       }
       recordCommitter.markProcessed(r);
     }
@@ -166,7 +172,7 @@ public class PubSubChangeConsumer implements DebeziumEngine.ChangeConsumer<Sourc
     for (ApiFuture<String> f : futureListBuilder.build()) {
       try {
         String result = f.get();
-        LOG.debug("Result from PubSub Publish Future: {}", result);
+        LOG.info("Result from PubSub Publish Future: {}", result);
       } catch (ExecutionException e) {
         LOG.error("Exception when executing future {}: {}. Stopping execution.", f, e);
         return;
