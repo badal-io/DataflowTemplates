@@ -105,7 +105,7 @@ public class DataCatalogSchemaUtils {
       }
     }
 
-    LOG.debug("Fetched entries: {}", entries);
+    LOG.info("Fetched entries: {}", entries);
 
     return entries.stream()
         .collect(
@@ -248,7 +248,7 @@ public class DataCatalogSchemaUtils {
 
     @Override
     public Entry updateSchemaForTable(String tableName, Schema beamSchema) {
-      LOG.debug("Converting Beam schema {} into a Data Catalog schema", beamSchema);
+      LOG.info("Converting Beam schema {} into a Data Catalog schema", beamSchema);
       com.google.cloud.datacatalog.v1beta1.Schema newEntrySchema =
           SchemaUtils.fromBeamSchema(beamSchema);
       LOG.info("Beam schema {} converted to Data Catalog schema {}", beamSchema, newEntrySchema);
@@ -273,6 +273,15 @@ public class DataCatalogSchemaUtils {
               .build();
 
       LOG.info("CreateEntryRequest: {}", createEntryRequest.toString());
+
+      UpdateEntryRequest updateEntryRequest = UpdateEntryRequest.newBuilder()
+              .setEntry(
+                  Entry.newBuilder()
+                        .setSchema(newEntrySchema)
+                        .setDescription(tableName)
+                        .setUserSpecifiedType("BEAM_ROW_DATA")
+                        .setUserSpecifiedSystem("DATAFLOW_CDC_ON_DEBEZIUM_DATA").build())
+              .build();
 
       try {
         return client.createEntry(createEntryRequest);
